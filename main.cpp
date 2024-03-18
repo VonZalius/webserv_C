@@ -1,6 +1,6 @@
 #include "webserv.hpp"
 
-std::string readFileContent(std::string& filePath)
+/*std::string readFileContent(std::string& filePath)
 {
     std::ifstream fileStream(filePath);
     if (!fileStream.is_open())
@@ -13,7 +13,7 @@ std::string readFileContent(std::string& filePath)
     buffer << fileStream.rdbuf();
 
     return buffer.str();
-}
+}*/
 
 // Fonction pour initialiser et lancer le serveur
 void startServer(ServerConfig& config)
@@ -62,7 +62,6 @@ void startServer(ServerConfig& config)
             exit(EXIT_FAILURE);
         }
 
-        config.httpResponse_blue = readFileContent(config.index);
         // Traitement de la requête avec la Partie C
         std::cout << std::endl << "-------------------- Partie C --------------------" << std::endl << std::endl;
         main_C(new_socket);
