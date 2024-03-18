@@ -1,7 +1,22 @@
 #include "webserv.hpp"
 
+std::string readFileContent(std::string& filePath)
+{
+    std::ifstream fileStream(filePath);
+    if (!fileStream.is_open())
+    {
+        std::cerr << "Impossible d'ouvrir le fichier : " << filePath << std::endl;
+        return "";
+    }
+
+    std::stringstream buffer;
+    buffer << fileStream.rdbuf();
+
+    return buffer.str();
+}
+
 // Fonction pour initialiser et lancer le serveur
-void startServer(const ServerConfig& config)
+void startServer(ServerConfig& config)
 {
     int server_fd, new_socket;
     struct sockaddr_in address;
@@ -47,9 +62,10 @@ void startServer(const ServerConfig& config)
             exit(EXIT_FAILURE);
         }
 
+        config.httpResponse_blue = readFileContent(config.index);
         // Traitement de la requête avec la Partie C
         std::cout << std::endl << "-------------------- Partie C --------------------" << std::endl << std::endl;
-        main_C(new_socket, config);
+        main_C(new_socket);
 
         close(new_socket);
     }

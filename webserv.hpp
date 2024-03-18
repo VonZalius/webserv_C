@@ -4,6 +4,7 @@
 #include <cstring>
 #include <vector>
 #include <string>
+#include <fstream>
 
 #include <sstream>
 #include <algorithm>
@@ -15,9 +16,12 @@
 struct ServerConfig
 {
     int port;
+    std::string index = "the_ultimate_webserv/index.html";
+
     std::string welcomeMessage;
-    std::string httpResponse_blue = 
-    "HTTP/1.1 200 OK\n"
+    std::string httpResponse_blue; 
+
+    /*"HTTP/1.1 200 OK\n"
     "Content-Type: text/html\n\n"
     "<!DOCTYPE html>\n"
     "<html>\n"
@@ -46,12 +50,12 @@ struct ServerConfig
     "<p>This is a simple web page with a light blue background.</p>\n"
     "<button onclick=\"window.location.href = 'https://www.youtube.com/';\">Visit YouTube</button>\n"
     "</body>\n"
-    "</html>";
+    "</html>";*/
 
     ServerConfig() : port(PORT), welcomeMessage("Hello, World from Partie B!\n") {}
 };
 
-void main_C(int client_socket, const ServerConfig& config);
+void main_C(int client_socket);
 
 //  http://localhost:8080
 //  g++ -o server test.cpp

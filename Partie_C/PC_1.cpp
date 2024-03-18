@@ -41,7 +41,8 @@ void HttpRequest::print_parse()
     std::cout << "uri : " << uri << std::endl;
     std::cout << "httpVersion : " << httpVersion << std::endl;
     std::cout << "headers : " << std::endl;
-    for (const auto& pair : headers) {
+    for (const auto& pair : headers)
+    {
         std::cout << "     "<< pair.first << " : " << pair.second << std::endl;
     }
     std::cout << "body : " << body << std::endl;
@@ -65,7 +66,7 @@ void HttpRequest::method_DELETE()
 
 
 // Fonction pour traiter une requête HTTP reçue et renvoyer une réponse
-void main_C(int client_socket, const ServerConfig& config)
+void main_C(int client_socket)
 {
 
     //-------------------- Partie Request --------------------
@@ -73,19 +74,19 @@ void main_C(int client_socket, const ServerConfig& config)
     HttpRequest httpRequest;
 
     const int bufferSize = 1024;
-    char buffer[bufferSize] = {0};
+    char request_buffer[bufferSize] = {0};
 
     // Lecture de la requête du client
-    int bytesReceived = read(client_socket, buffer, bufferSize - 1);
+    int bytesReceived = read(client_socket, request_buffer, bufferSize - 1);
     if (bytesReceived < 1)
     {
         std::cout << "Erreur de lecture ou connexion fermée par le client." << std::endl;
         return;
     }
 
-    std::cout << std::endl << std::endl << "-------------------> Request" << std::endl << buffer << std::endl;
+    std::cout << std::endl << std::endl << "-------------------> Request" << std::endl << request_buffer << std::endl;
 
-    httpRequest.parse(buffer);
+    httpRequest.parse(request_buffer);
     httpRequest.print_parse();
 
     //-------------------- Partie Execution --------------------
@@ -100,16 +101,23 @@ void main_C(int client_socket, const ServerConfig& config)
 
     //-------------------- Partie Response --------------------
 
+    std::string basePath = "."; // Chemin de base vers le dossier du site
+    std::string filePath = basePath + (httpRequest.uri == "/" ? "/the_ultimate_webserv/index.html" : httpRequest.uri);
+    std::ifstream fileStream(filePath);
     std::string httpResponse;
-    // Ici, vous pouvez décider de la réponse en fonction du parsing
-    if (httpRequest.uri == "/")
-    {
-        httpResponse = config.httpResponse_blue; // Réponse personnalisée depuis config
-    }
-    else
+
+    if (!fileStream.is_open())
     {
         httpResponse = "HTTP/1.1 404 Not Found\nContent-Type: text/plain\n\nPage not found";
     }
+    else
+    {
+        std::stringstream response_buffer;
+        response_buffer << fileStream.rdbuf();
+        httpResponse = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n" + response_buffer.str();
+    }
+
+    std::cout << std::endl << std::endl << "-------------------> Response" << std::endl << httpResponse << std::endl;
 
     // Envoi de la réponse au client
     send(client_socket, httpResponse.c_str(), httpResponse.length(), 0);
