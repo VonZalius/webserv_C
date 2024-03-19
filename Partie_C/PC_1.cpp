@@ -66,7 +66,7 @@ void HttpRequest::method_DELETE()
 
 
 // Fonction pour traiter une requête HTTP reçue et renvoyer une réponse
-void main_C(int client_socket)
+void main_C(int client_socket, ServerConfig& config)
 {
 
     //-------------------- Partie Request --------------------
@@ -101,8 +101,9 @@ void main_C(int client_socket)
 
     //-------------------- Partie Response --------------------
 
-    std::string basePath = "."; // Chemin de base vers le dossier du site
-    std::string filePath = basePath + (httpRequest.uri == "/" ? "/the_ultimate_webserv/index.html" : httpRequest.uri);
+     // Utilisez basePath de la configuration pour trouver les fichiers
+    std::string requestURI = httpRequest.uri == "/" ? config.index : httpRequest.uri;
+    std::string filePath = config.basePath + requestURI;
     std::ifstream fileStream(filePath);
     std::string httpResponse;
 

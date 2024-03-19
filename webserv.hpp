@@ -15,10 +15,11 @@
 struct ServerConfig
 {
     int port = 8080;
-    std::string index = "the_ultimate_webserv/index.html";
+    std::string basePath = "./the_ultimate_webserv";
+    std::string index = "/index.html";
 };
 
-void main_C(int client_socket);
+void main_C(int client_socket, ServerConfig& config);
 
 //  http://localhost:8080
 //  g++ -o server test.cpp

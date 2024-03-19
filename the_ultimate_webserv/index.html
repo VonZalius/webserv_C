@@ -20,7 +20,7 @@
 			{
 				background-color: #d7372f;
 			}
-			.btn-other
+			.btn-other, .btn-other-2
 			{
 				font-size: 20px;
 				padding: 10px 20px;
@@ -30,7 +30,7 @@
 				cursor: pointer;
 				margin: 20px;
 			}
-			.btn-other:hover
+			.btn-other:hover, .btn-other-2:hover
 			{
 				background-color: #1a74d4;
 			}
@@ -39,16 +39,19 @@
 	<body>
 		<h1>Titre 1</h1>
 
-		<p>Premier paragrapher dans le body, juste apres le titre 1.</p>
+		<p>Premier paragraphe dans le body, juste apres le titre 1.</p>
 
 		<button class="btn-youtube" onclick="window.open('https://www.youtube.com/', '_blank')">Youtube</button>
 
 		<p>
 			Deuxieme paragraphe avec maintenant<br>
 			un retour a la ligne,<br>
-			et un autre, le tout apres le bouton
+			et un autre, le tout apres le bouton.
 		</p>
 
-		<button class="btn-other" onclick="window.location.href = 'http://localhost:8080/the_ultimate_webserv/pages/autre.html'">Autre page</button>
+		<button class="btn-other" onclick="window.location.href = 'http://localhost:8080/pages/autre.html'">Autre page</button>
+
+		<!-- Ajout du second bouton pour rediriger vers autre_2.html dans pages_2 -->
+		<button class="btn-other-2" onclick="window.location.href = 'http://localhost:8080/pages_2/autre_2.html'">Page dans pages_2</button>
 	</body>
 </html>
