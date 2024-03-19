@@ -1,6 +1,11 @@
+#ifndef PC_1_HPP
+#define PC_1_HPP
+
 #include "../webserv.hpp"
 
-class HttpRequest
+struct ServerConfig;
+
+class Part_C
 {
 public:
     std::string method;
@@ -8,9 +13,12 @@ public:
     std::string httpVersion;
     std::map<std::string, std::string> headers;
     std::string body;
+    int status;
+    std::map<int, std::string> _statusCodes;
 
-    HttpRequest();
+    Part_C(int client_socket, ServerConfig& config);
 
+    void init();
     void parse(const std::string& requestText);
     void print_parse();
     void method_GET();
@@ -19,3 +27,5 @@ public:
 
 private:
 };
+
+#endif

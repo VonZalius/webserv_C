@@ -1,3 +1,6 @@
+#ifndef WEBSERV_HPP
+#define WEBSERV_HPP
+
 #include <iostream>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -9,6 +12,8 @@
 #include <sstream>
 #include <algorithm>
 #include <map>
+
+#include "Partie_C/PC_1.hpp"
 
 
 // Simule une structure de configuration simple
@@ -24,3 +29,5 @@ void main_C(int client_socket, ServerConfig& config);
 //  http://localhost:8080
 //  g++ -o server test.cpp
 //  ./server 
+
+#endif

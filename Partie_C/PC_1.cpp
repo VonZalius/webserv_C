@@ -1,11 +1,88 @@
 #include "PC_1.hpp"
 
-HttpRequest::HttpRequest()
+// Fonction pour traiter une requête HTTP reçue et renvoyer une réponse
+Part_C::Part_C(int client_socket, ServerConfig& config)
 {
+
+    init();
+
+    //-------------------- Partie Request --------------------
+
+    const int bufferSize = 1024;
+    char request_buffer[bufferSize] = {0};
+
+    // Lecture de la requête du client
+    int bytesReceived = read(client_socket, request_buffer, bufferSize - 1);
+    if (bytesReceived < 1)
+    {
+        std::cout << "Erreur de lecture ou connexion fermée par le client." << std::endl;
+        return;
+    }
+
+    std::cout << std::endl << std::endl << "-------------------> Request" << std::endl << request_buffer << std::endl;
+
+    parse(request_buffer);
+    print_parse();
+
+    //-------------------- Partie Execution --------------------
+
+    if(method == "GET")
+        method_GET();
+    else if(method == "POST")
+        method_POST();
+    else if(method == "DELETE")
+        method_DELETE();
+
+
+    //-------------------- Partie Response --------------------
+
+     // Utilisez basePath de la configuration pour trouver les fichiers
+    std::string requestURI = uri == "/" ? config.index : uri;
+    std::string filePath = config.basePath + requestURI;
+    std::ifstream fileStream(filePath);
+    std::string httpResponse;
+
+    if (!fileStream.is_open())
+    {
+        httpResponse = "HTTP/1.1 404 Not Found\nContent-Type: text/plain\n\nPage not found";
+    }
+    else
+    {
+        std::stringstream response_buffer;
+        response_buffer << fileStream.rdbuf();
+        httpResponse = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n" + response_buffer.str();
+    }
+
+    std::cout << std::endl << std::endl << "-------------------> Response" << std::endl << httpResponse << std::endl;
+
+    // Envoi de la réponse au client
+    send(client_socket, httpResponse.c_str(), httpResponse.length(), 0);
 
 }
 
-void HttpRequest::parse(const std::string& requestText)
+void Part_C::init()
+{
+    _statusCodes[200] = "OK";
+	_statusCodes[201] = "Created";
+	_statusCodes[202] = "Accepted";
+	_statusCodes[204] = "No Content";
+	_statusCodes[301] = "Moved Permanently";
+	_statusCodes[302] = "Found";
+	_statusCodes[304] = "Not Modified";
+	_statusCodes[400] = "Bad Request";
+	_statusCodes[401] = "Unauthorized";
+	_statusCodes[403] = "Forbidden";
+	_statusCodes[404] = "Not Found";
+	_statusCodes[405] = "Method Not Allowed";
+	_statusCodes[409] = "Conflict";
+	_statusCodes[413] = "Payload Too Large";
+	_statusCodes[500] = "Internal Server Error";
+	_statusCodes[501] = "Not Implemented";
+	_statusCodes[505] = "HTTP Version Not Supported";
+	_statusCodes[508] = "Infinite Loop Detected";
+}
+
+void Part_C::parse(const std::string& requestText)
 {
     std::istringstream requestStream(requestText);
     std::string line;
@@ -34,7 +111,7 @@ void HttpRequest::parse(const std::string& requestText)
     body = std::string(std::istreambuf_iterator<char>(requestStream), {});
 }
 
-void HttpRequest::print_parse()
+void Part_C::print_parse()
 {
     std::cout << "-------------------> Impression du parsing\n";
     std::cout << "method : " << method << std::endl;
@@ -49,78 +126,18 @@ void HttpRequest::print_parse()
     std::cout << std::endl;
 }
 
-void HttpRequest::method_GET()
+void Part_C::method_GET()
 {
     std::cout << std::endl << "-------------------> GET" << std::endl<< std::endl;
 }
 
-void HttpRequest::method_POST()
+void Part_C::method_POST()
 {
     std::cout << std::endl << "-------------------> POST" << std::endl<< std::endl;
 }
 
-void HttpRequest::method_DELETE()
+void Part_C::method_DELETE()
 {
     std::cout << std::endl << "-------------------> DELETE" << std::endl<< std::endl;
 }
 
-
-// Fonction pour traiter une requête HTTP reçue et renvoyer une réponse
-void main_C(int client_socket, ServerConfig& config)
-{
-
-    //-------------------- Partie Request --------------------
-
-    HttpRequest httpRequest;
-
-    const int bufferSize = 1024;
-    char request_buffer[bufferSize] = {0};
-
-    // Lecture de la requête du client
-    int bytesReceived = read(client_socket, request_buffer, bufferSize - 1);
-    if (bytesReceived < 1)
-    {
-        std::cout << "Erreur de lecture ou connexion fermée par le client." << std::endl;
-        return;
-    }
-
-    std::cout << std::endl << std::endl << "-------------------> Request" << std::endl << request_buffer << std::endl;
-
-    httpRequest.parse(request_buffer);
-    httpRequest.print_parse();
-
-    //-------------------- Partie Execution --------------------
-
-    if(httpRequest.method == "GET")
-        httpRequest.method_GET();
-    else if(httpRequest.method == "POST")
-        httpRequest.method_POST();
-    else if(httpRequest.method == "DELETE")
-        httpRequest.method_DELETE();
-
-
-    //-------------------- Partie Response --------------------
-
-     // Utilisez basePath de la configuration pour trouver les fichiers
-    std::string requestURI = httpRequest.uri == "/" ? config.index : httpRequest.uri;
-    std::string filePath = config.basePath + requestURI;
-    std::ifstream fileStream(filePath);
-    std::string httpResponse;
-
-    if (!fileStream.is_open())
-    {
-        httpResponse = "HTTP/1.1 404 Not Found\nContent-Type: text/plain\n\nPage not found";
-    }
-    else
-    {
-        std::stringstream response_buffer;
-        response_buffer << fileStream.rdbuf();
-        httpResponse = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n" + response_buffer.str();
-    }
-
-    std::cout << std::endl << std::endl << "-------------------> Response" << std::endl << httpResponse << std::endl;
-
-    // Envoi de la réponse au client
-    send(client_socket, httpResponse.c_str(), httpResponse.length(), 0);
-
-}

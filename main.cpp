@@ -64,7 +64,7 @@ void startServer(ServerConfig& config)
 
         // Traitement de la requête avec la Partie C
         std::cout << std::endl << "-------------------- Partie C --------------------" << std::endl << std::endl;
-        main_C(new_socket, config);
+        Part_C part_c(new_socket, config);
 
         close(new_socket);
     }
