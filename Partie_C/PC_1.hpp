@@ -13,6 +13,9 @@ public:
     std::string httpVersion;
     std::map<std::string, std::string> headers;
     std::string body;
+    std::string contentType;
+    std::string content;
+
     int status;
     std::map<int, std::string> _statusCodes;
 
@@ -24,6 +27,7 @@ public:
     void method_GET();
     void method_POST();
     void method_DELETE();
+    void getContentType(const std::string& filePath);
 
 private:
 };

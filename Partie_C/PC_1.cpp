@@ -42,16 +42,31 @@ Part_C::Part_C(int client_socket, ServerConfig& config)
     std::ifstream fileStream(filePath);
     std::string httpResponse;
 
+
     if (!fileStream.is_open())
+        status = 404;
+    else
+        status = 200;
+
+
+    if (status == 404)
     {
-        httpResponse = "HTTP/1.1 404 Not Found\nContent-Type: text/plain\n\nPage not found";
+        status = 404;
+        contentType = "text/plain";
+        content = "Page not found... very sorry :(";
     }
     else
     {
+        getContentType(filePath);
+
         std::stringstream response_buffer;
         response_buffer << fileStream.rdbuf();
-        httpResponse = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n" + response_buffer.str();
+        content = response_buffer.str();
     }
+
+
+    httpResponse =  "HTTP/1.1 " + std::to_string(status) + " " + _statusCodes[status] + "\n" +
+                    "Content-Type: " + contentType + "\n\n" + content;
 
     std::cout << std::endl << std::endl << "-------------------> Response" << std::endl << httpResponse << std::endl;
 
@@ -139,5 +154,21 @@ void Part_C::method_POST()
 void Part_C::method_DELETE()
 {
     std::cout << std::endl << "-------------------> DELETE" << std::endl<< std::endl;
+}
+
+void Part_C::getContentType(const std::string& filePath)
+{
+    if (filePath.rfind(".html") == filePath.length() - 5)
+        contentType = "text/html";
+    else if (filePath.rfind(".css") == filePath.length() - 4) 
+        contentType = "text/css";
+    else if (filePath.rfind(".js") == filePath.length() - 3) 
+        contentType = "application/javascript";
+    else if (filePath.rfind(".png") == filePath.length() - 4) 
+        contentType = "image/png";
+    else if (filePath.rfind(".jpg") == filePath.length() - 4 || filePath.rfind(".jpeg") == filePath.length() - 5) 
+        contentType = "image/jpeg";
+    else
+        contentType = "text/plain"; // Type par défaut
 }
 
