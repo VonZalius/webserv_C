@@ -16,7 +16,7 @@
 }*/
 
 // Fonction pour initialiser et lancer le serveur
-void startServer(ServerConfig& config)
+void startServer(ServerConfig& config, int test_mode)
 {
     int server_fd, new_socket;
     struct sockaddr_in address;
@@ -64,15 +64,20 @@ void startServer(ServerConfig& config)
 
         // Traitement de la requête avec la Partie C
         std::cout << std::endl << "-------------------- Partie C --------------------" << std::endl << std::endl;
-        Part_C part_c(new_socket, config);
+        Part_C part_c(new_socket, config, test_mode);
 
         close(new_socket);
     }
 }
 
-int main()
+int main(int argc, char **argv)
 {
+    if (argc != 2)
+    {
+        std::cout << "enter test mode value\n";
+        return 0;
+    }
     ServerConfig config; // Utiliserait normalement les données provenant de la Partie A
-    startServer(config);
+    startServer(config, atoi(argv[1]));
     return 0;
 }

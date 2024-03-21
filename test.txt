@@ -1,0 +1,1 @@
+POST /utilisateurs avec un corps de requête contenant des données pour créer un nouvel utilisateur.

@@ -8,6 +8,9 @@ struct ServerConfig;
 class Part_C
 {
 public:
+
+    bool test_mode = false;
+
     std::string method;
     std::string uri;
     std::string httpVersion;
@@ -19,7 +22,7 @@ public:
     int status;
     std::map<int, std::string> _statusCodes;
 
-    Part_C(int client_socket, ServerConfig& config);
+    Part_C(int client_socket, ServerConfig& config, int test_mode);
 
     void init();
     void parse(const std::string& requestText);

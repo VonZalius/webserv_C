@@ -1,10 +1,11 @@
 #include "PC_1.hpp"
 
 // Fonction pour traiter une requête HTTP reçue et renvoyer une réponse
-Part_C::Part_C(int client_socket, ServerConfig& config)
+Part_C::Part_C(int client_socket, ServerConfig& config, int test_mode): test_mode(test_mode)
 {
 
     init();
+    status = 200;
 
     //-------------------- Partie Request --------------------
 
@@ -12,12 +13,25 @@ Part_C::Part_C(int client_socket, ServerConfig& config)
     char request_buffer[bufferSize] = {0};
 
     // Lecture de la requête du client
-    int bytesReceived = read(client_socket, request_buffer, bufferSize - 1);
-    if (bytesReceived < 1)
+    if (test_mode == false)
     {
-        std::cout << "Erreur de lecture ou connexion fermée par le client." << std::endl;
-        return;
+        int bytesReceived = read(client_socket, request_buffer, bufferSize - 1);
+        if (bytesReceived < 1)
+        {
+            std::cout << "Erreur de lecture ou connexion fermée par le client." << std::endl;
+            return;
+        }
     }
+
+    //TEST
+    if (test_mode == true)
+    {
+        int fd = open("test.txt", O_RDONLY);
+        off_t fileSize = lseek(fd, 0, SEEK_END);
+        lseek(fd, 0, SEEK_SET);
+        read(fd, request_buffer, fileSize);
+    }
+
 
     std::cout << std::endl << std::endl << "-------------------> Request" << std::endl << request_buffer << std::endl;
 
@@ -45,9 +59,6 @@ Part_C::Part_C(int client_socket, ServerConfig& config)
 
     if (!fileStream.is_open())
         status = 404;
-    else
-        status = 200;
-
 
     if (status == 404)
     {

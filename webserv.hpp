@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <map>
 
+#include <fcntl.h>
+
 #include "Partie_C/PC_1.hpp"
 
 
