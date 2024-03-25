@@ -66,18 +66,22 @@ Part_C::Part_C(int client_socket, ServerConfig& config, int test_mode): test_mod
         contentType = "text/plain";
         content = "Page not found... very sorry :(";
     }
-    else
+    /*else
     {
         getContentType(filePath);
 
         std::stringstream response_buffer;
         response_buffer << fileStream.rdbuf();
         content = response_buffer.str();
-    }
+    }*/
 
 
-    httpResponse =  "HTTP/1.1 " + std::to_string(status) + " " + _statusCodes[status] + "\n" +
-                    "Content-Type: " + contentType + "\n\n" + content;
+    httpResponse = "HTTP/1.1 " + std::to_string(status) + " " + _statusCodes[status] + "\r\n" +
+               "Content-Type: " + contentType + "\r\n" +
+               "Content-Length: " + std::to_string(content.length()) + "\r\n" +
+               //"Connection: close\r\n" +
+               "\r\n" +
+               content;
 
     std::cout << std::endl << std::endl << "-------------------> Response" << std::endl << httpResponse << std::endl;
 
@@ -112,28 +116,25 @@ void Part_C::parse(const std::string& requestText)
 {
     std::istringstream requestStream(requestText);
     std::string line;
-    
+
     // Parse de la ligne de requête
-    if (std::getline(requestStream, line))
-    {
+    if (std::getline(requestStream, line)) {
         std::istringstream lineStream(line);
         lineStream >> method >> uri >> httpVersion;
     }
-    
+
     // Parse des en-têtes
-    while (std::getline(requestStream, line) && line != "\r")
-    {
+    while (std::getline(requestStream, line)) {
+        if (line.empty()) break; // Vérifie la fin des en-têtes grâce à la ligne vide
         auto colonPos = line.find(":");
-        if (colonPos != std::string::npos)
-        {
+        if (colonPos != std::string::npos) {
             std::string headerName = line.substr(0, colonPos);
-            // +2 pour sauter ": ", -3 pour ignorer "\r"
-            std::string headerValue = line.substr(colonPos + 2, line.size() - colonPos - 3); 
+            std::string headerValue = line.substr(colonPos + 2); // Supprime ": "
             headers[headerName] = headerValue;
         }
     }
 
-    // Le reste est le corps
+    // Le reste est le corps de la requête
     body = std::string(std::istreambuf_iterator<char>(requestStream), {});
 }
 
@@ -154,17 +155,62 @@ void Part_C::print_parse()
 
 void Part_C::method_GET()
 {
-    std::cout << std::endl << "-------------------> GET" << std::endl<< std::endl;
+    std::cout << std::endl << "-------------------> GET" << std::endl;
+}
+
+std::unordered_map<std::string, std::string> parseUrlEncodedData(const std::string& data)
+{
+    std::unordered_map<std::string, std::string> result;
+    std::istringstream dataStream(data);
+    std::string pair;
+
+    while (std::getline(dataStream, pair, '&')) {
+        size_t equalPos = pair.find('=');
+        if (equalPos != std::string::npos) {
+            std::string key = pair.substr(0, equalPos);
+            std::string value = pair.substr(equalPos + 1);
+            result[key] = value; // Dans une version complète, vous devriez décoder les pourcentages ici.
+        }
+    }
+
+    return result;
 }
 
 void Part_C::method_POST()
 {
-    std::cout << std::endl << "-------------------> POST" << std::endl<< std::endl;
+    std::cout << std::endl << "-------------------> POST" << std::endl;
+
+    // Ici, vous pouvez ajouter une logique pour traiter différents types de contenu
+    if (headers["Content-Type"] == "application/x-www-form-urlencoded")
+    {
+        auto postData = parseUrlEncodedData(body);
+
+        // Afficher les données postData
+        std::cout << std::endl << "---> Is application/x-www-form-urlencoded" << std::endl;
+        for (const auto& pair : postData) {
+            std::cout << "Clé: " << pair.first << ", Valeur: " << pair.second << std::endl;
+        }
+        
+        // Traitez les données de postData selon vos besoins spécifiques
+        // Par exemple, valider les données, les stocker dans une base de données, etc.
+    }
+    else if (headers["Content-Type"] == "application/json")
+    {
+        // Si vous attendez du JSON, vous devrez le parser ici
+        // Assurez-vous d'inclure une bibliothèque JSON pour cette tâche
+    }
+
+    // Après avoir traité les données, configurez la réponse
+    // Supposons que le traitement a été réussi et que vous souhaitez retourner un 200 OK
+    // ou un 201 Created si vous avez créé une ressource
+    status = 201; // Par exemple, pour "Created"
+    contentType = "text/plain"; // Ajustez selon le type de réponse que vous voulez renvoyer
+    content = "Resource created successfully."; // Personnalisez le message selon le résultat du traitement
 }
 
 void Part_C::method_DELETE()
 {
-    std::cout << std::endl << "-------------------> DELETE" << std::endl<< std::endl;
+    std::cout << std::endl << "-------------------> DELETE" << std::endl;
 }
 
 void Part_C::getContentType(const std::string& filePath)
