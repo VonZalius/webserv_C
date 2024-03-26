@@ -37,7 +37,7 @@ Part_C::Part_C(int client_socket, ServerConfig& config, int test_mode): test_mod
 
     try
     {
-        parse(request_buffer);
+        parse(request_buffer, config);
         print_parse();
 
     //-------------------- Partie Execution --------------------
@@ -53,7 +53,7 @@ Part_C::Part_C(int client_socket, ServerConfig& config, int test_mode): test_mod
 
     catch(InvalidRequestException &e)
     {
-        std::cout << status << '\n';
+        std::cout << "-----> Error ! It seem to be a : " << status << '\n';
     }
 
     //-------------------- Partie Response --------------------
@@ -142,7 +142,7 @@ bool isPathLengthValid(const std::string &path, size_t maxLength)
 	return path.length() <= maxLength;
 }
 
-void Part_C::parse(const std::string& requestText)
+void Part_C::parse(const std::string& requestText, ServerConfig& config)
 {
     std::istringstream requestStream(requestText);
     std::string line;
@@ -212,7 +212,30 @@ void Part_C::parse(const std::string& requestText)
     }
 
     // Le reste est le corps de la requête
-    body = std::string(std::istreambuf_iterator<char>(requestStream), {});
+    std::string potential_body = std::string(std::istreambuf_iterator<char>(requestStream), {});
+    if (potential_body.size() > config.max_body_size)
+    {
+        status = 413;
+        throw Part_C::InvalidRequestException("Error Body 413");
+    }
+    if (headers.find("Content-Type") != headers.end())
+    {
+        if(headers["Content-Type"].find("multipart/form-data") != std::string::npos)
+        {
+            std::cout << "\n-----> Body form multipart/form-data\n\n";
+        }
+        else if(headers["Content-Type"].find("application/x-www-form-urlencoded") != std::string::npos)
+        {
+            std::cout << "\n-----> Body form application/x-www-form-urlencoded\n\n";
+            post_file_name = "test";
+            post_file_content = "contenu de test";
+        }
+        else
+        {
+            std::cout << "\n-----> Body form not supported\n\n";
+        }
+    }
+    std::string body = potential_body;
 }
 
 void Part_C::print_parse()
@@ -253,11 +276,39 @@ std::unordered_map<std::string, std::string> parseUrlEncodedData(const std::stri
     return result;
 }
 
+bool checkFileExists(const std::string &path)
+{
+	std::ifstream file(path.c_str());
+	return (file.good());
+}
+
 void Part_C::method_POST()
 {
     std::cout << std::endl << "-------------------> POST" << std::endl;
 
-    // Ici, vous pouvez ajouter une logique pour traiter différents types de contenu
+    std::string upload_path = "./the_ultimate_webserv/post/" + post_file_name;
+	if (checkFileExists(upload_path))
+	{
+		status= 409; // Conflict
+		throw Part_C::InvalidRequestException("Error Post 409");
+	}
+
+	std::ofstream file;
+	file.open(upload_path, std::ios::out);
+
+	if (!file.is_open())
+	{
+		status = 500; // Internal Server Error
+		throw Part_C::InvalidRequestException("Error Post 500");
+	}
+	file << post_file_content;
+	file.close();
+
+	status = 201; // Created
+    contentType = "text/plain"; // Ajustez selon le type de réponse que vous voulez renvoyer
+    content = "Resource created successfully."; // Personnalisez le message selon le résultat du traitement
+
+    /*// Ici, vous pouvez ajouter une logique pour traiter différents types de contenu
     if (headers["Content-Type"] == "application/x-www-form-urlencoded")
     {
         auto postData = parseUrlEncodedData(body);
@@ -273,6 +324,7 @@ void Part_C::method_POST()
     }
     else if (headers["Content-Type"] == "application/json")
     {
+        std::cout << std::endl << "---> Is application/json" << std::endl;
         // Si vous attendez du JSON, vous devrez le parser ici
         // Assurez-vous d'inclure une bibliothèque JSON pour cette tâche
     }
@@ -282,7 +334,7 @@ void Part_C::method_POST()
     // ou un 201 Created si vous avez créé une ressource
     status = 201; // Par exemple, pour "Created"
     contentType = "text/plain"; // Ajustez selon le type de réponse que vous voulez renvoyer
-    content = "Resource created successfully."; // Personnalisez le message selon le résultat du traitement
+    content = "Resource created successfully."; // Personnalisez le message selon le résultat du traitement*/
 }
 
 void Part_C::method_DELETE()

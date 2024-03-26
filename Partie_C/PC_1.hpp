@@ -19,13 +19,16 @@ public:
     std::string contentType;
     std::string content;
 
+    std::string post_file_name;
+    std::string post_file_content;
+
     int status;
     std::map<int, std::string> _statusCodes;
 
     Part_C(int client_socket, ServerConfig& config, int test_mode);
 
     void init();
-    void parse(const std::string& requestText);
+    void parse(const std::string& requestText, ServerConfig& config);
     void print_parse();
     void method_GET();
     void method_POST();

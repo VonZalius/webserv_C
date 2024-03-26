@@ -24,6 +24,7 @@
 struct ServerConfig
 {
     int port = 8080;
+    long unsigned int max_body_size = 9999;
     std::string basePath = "./the_ultimate_webserv";
     std::string index = "/index.html";
 };
