@@ -142,6 +142,29 @@ bool isPathLengthValid(const std::string &path, size_t maxLength)
 	return path.length() <= maxLength;
 }
 
+std::map<std::string, std::string> parseUrlEncoded(const std::string& data) {
+    std::map<std::string, std::string> result;
+    std::istringstream dataStream(data);
+    std::string pair;
+
+    while (std::getline(dataStream, pair, '&')) {
+        auto delimiterPos = pair.find('=');
+        if (delimiterPos != std::string::npos) {
+            std::string key = pair.substr(0, delimiterPos);
+            std::string value = pair.substr(delimiterPos + 1);
+
+            // Remplacer '+' par ' ' dans value
+            std::replace(value.begin(), value.end(), '+', ' ');
+
+            // Décoder les caractères en pourcentage ici si nécessaire
+
+            result[key] = value;
+        }
+    }
+
+    return result;
+}
+
 void Part_C::parse(const std::string& requestText, ServerConfig& config)
 {
     std::istringstream requestStream(requestText);
@@ -222,13 +245,14 @@ void Part_C::parse(const std::string& requestText, ServerConfig& config)
     {
         if(headers["Content-Type"].find("multipart/form-data") != std::string::npos)
         {
-            std::cout << "\n-----> Body form multipart/form-data\n\n";
+            std::cout << "\n-----> Body form multipart/form-data\n Not done yet\n\n";
         }
         else if(headers["Content-Type"].find("application/x-www-form-urlencoded") != std::string::npos)
         {
-            std::cout << "\n-----> Body form application/x-www-form-urlencoded\n\n";
-            post_file_name = "test";
-            post_file_content = "contenu de test";
+            std::cout << "\n-----> Body form application/x-www-form-urlencoded\n" << potential_body << std::endl;
+            std::map<std::string, std::string> post_file_map = parseUrlEncoded(potential_body);
+            post_file_name = post_file_map["filename"];
+            post_file_content = post_file_map["content"];
         }
         else
         {
