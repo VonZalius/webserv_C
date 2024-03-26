@@ -32,6 +32,21 @@ public:
     void method_DELETE();
     void getContentType(const std::string& filePath);
 
+    class InvalidRequestException : public std::exception
+	{
+	public:
+		InvalidRequestException(const std::string &message) : _message(message) {}
+		virtual const char *what(void) const throw()
+		{
+			return (_message.c_str());
+		}
+		virtual ~InvalidRequestException() throw() {}
+		InvalidRequestException(void) : _message("Invalid request") {}
+
+	private:
+		std::string _message;
+	};
+
 private:
 };
 

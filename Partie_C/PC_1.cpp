@@ -35,18 +35,26 @@ Part_C::Part_C(int client_socket, ServerConfig& config, int test_mode): test_mod
 
     std::cout << std::endl << std::endl << "-------------------> Request" << std::endl << request_buffer << std::endl;
 
-    parse(request_buffer);
-    print_parse();
+    try
+    {
+        parse(request_buffer);
+        print_parse();
 
     //-------------------- Partie Execution --------------------
 
-    if(method == "GET")
-        method_GET();
-    else if(method == "POST")
-        method_POST();
-    else if(method == "DELETE")
-        method_DELETE();
+        if(method == "GET")
+            method_GET();
+        else if(method == "POST")
+            method_POST();
+        else if(method == "DELETE")
+            method_DELETE();
 
+    }
+
+    catch(InvalidRequestException &e)
+    {
+        std::cout << status << '\n';
+    }
 
     //-------------------- Partie Response --------------------
 
@@ -112,6 +120,28 @@ void Part_C::init()
 	_statusCodes[508] = "Infinite Loop Detected";
 }
 
+bool areAllPathCharactersValid(const std::string &path)
+{
+	const std::string allowedSpecialChars = "_-.~:/?#[]@!$&'()*+,;=";
+	for (size_t i = 0; i < path.length(); i++)
+	{
+		if (!isalnum(path[i]) && allowedSpecialChars.find(path[i]) == std::string::npos)
+			return false;
+	}
+	return true;
+}
+
+bool isSafePath(const std::string &path)
+{
+	// Check for directory traversal
+	return path.find("..") == std::string::npos;
+}
+
+bool isPathLengthValid(const std::string &path, size_t maxLength)
+{
+	return path.length() <= maxLength;
+}
+
 void Part_C::parse(const std::string& requestText)
 {
     std::istringstream requestStream(requestText);
@@ -122,15 +152,62 @@ void Part_C::parse(const std::string& requestText)
         std::istringstream lineStream(line);
         lineStream >> method >> uri >> httpVersion;
     }
+    if (method != "GET" && method != "POST" && method != "DELETE")
+	{
+		status = 501;
+		throw Part_C::InvalidRequestException("Error Method 501");
+	}
+    if (!areAllPathCharactersValid(uri))
+	{
+		status = 400;
+		throw Part_C::InvalidRequestException("Error Uri 400");
+	}
+	if (!isSafePath(uri))
+	{
+		status = 403;
+		throw Part_C::InvalidRequestException("Error Uri 403");
+	}
+	if (!isPathLengthValid(uri, 4096))
+	{
+		status = 414;
+		throw Part_C::InvalidRequestException("Error Uri 414");
+	}
+    if (httpVersion != "HTTP/1.1" && httpVersion != "HTTP/1.0")
+	{
+		status = 505;
+		throw Part_C::InvalidRequestException("Error HttpVersion 505");
+	}
 
     // Parse des en-têtes
-    while (std::getline(requestStream, line)) {
+    while (std::getline(requestStream, line))
+    {
         if (line.empty()) break; // Vérifie la fin des en-têtes grâce à la ligne vide
         auto colonPos = line.find(":");
-        if (colonPos != std::string::npos) {
+        if (colonPos != std::string::npos && colonPos != 0)
+        { // Vérifie aussi que ':' n'est pas le premier caractère
             std::string headerName = line.substr(0, colonPos);
-            std::string headerValue = line.substr(colonPos + 2); // Supprime ": "
-            headers[headerName] = headerValue;
+            // Assurez-vous qu'il y a un espace après ':' avant de commencer la valeur
+            std::string headerValue = (colonPos + 2 < line.size()) ? line.substr(colonPos + 2) : "";
+
+            // Trim leading and trailing whitespaces from headerName and headerValue if necessary
+            // ...
+
+            if (!headerName.empty() && !headerValue.empty())
+            { // Vérifie que ni le nom ni la valeur de l'en-tête ne sont vides
+                headers[headerName] = headerValue; // Ajout de l'en-tête à la map
+            }
+            else
+            {
+                // Gestion d'erreur ou log si le nom de l'en-tête ou la valeur est vide
+                status = 400;
+		        throw Part_C::InvalidRequestException("Error Headers 400");
+            }
+        }
+        else
+        {
+            // Gestion d'erreur ou log si la ligne d'en-tête est mal formée (pas de ':' ou ':' est le premier caractère)
+            status = 400;
+		    throw Part_C::InvalidRequestException("Error Headers 400");
         }
     }
 
