@@ -29,6 +29,8 @@ public:
 
     void init();
     void parse(const std::string& requestText, ServerConfig& config);
+    std::string getMultiPartBoundary();
+    std::unordered_map<std::string, std::string>  parseMultiPartBody(const std::string &bodyLines);
     void print_parse();
     void method_GET();
     void method_POST();

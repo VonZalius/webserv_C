@@ -74,14 +74,14 @@ Part_C::Part_C(int client_socket, ServerConfig& config, int test_mode): test_mod
         contentType = "text/plain";
         content = "Page not found... very sorry :(";
     }
-    /*else
+    else if (method == "GET")
     {
         getContentType(filePath);
 
         std::stringstream response_buffer;
         response_buffer << fileStream.rdbuf();
         content = response_buffer.str();
-    }*/
+    }
 
 
     httpResponse = "HTTP/1.1 " + std::to_string(status) + " " + _statusCodes[status] + "\r\n" +
@@ -204,7 +204,7 @@ void Part_C::parse(const std::string& requestText, ServerConfig& config)
     // Parse des en-têtes
     while (std::getline(requestStream, line))
     {
-        if (line.empty()) break; // Vérifie la fin des en-têtes grâce à la ligne vide
+        if (line.empty() || line[0] == '\r') break; // Vérifie la fin des en-têtes grâce à la ligne vide
         auto colonPos = line.find(":");
         if (colonPos != std::string::npos && colonPos != 0)
         { // Vérifie aussi que ':' n'est pas le premier caractère
@@ -230,6 +230,7 @@ void Part_C::parse(const std::string& requestText, ServerConfig& config)
         {
             // Gestion d'erreur ou log si la ligne d'en-tête est mal formée (pas de ':' ou ':' est le premier caractère)
             status = 400;
+            std::cout << "\nTEST ERROR\n";
 		    throw Part_C::InvalidRequestException("Error Headers 400");
         }
     }
@@ -245,7 +246,10 @@ void Part_C::parse(const std::string& requestText, ServerConfig& config)
     {
         if(headers["Content-Type"].find("multipart/form-data") != std::string::npos)
         {
-            std::cout << "\n-----> Body form multipart/form-data\n Not done yet\n\n";
+            std::cout << "\n-----> Body form multipart/form-data\n";
+            std::unordered_map<std::string, std::string> post_file_map = parseMultiPartBody(potential_body);
+            post_file_name = post_file_map["filename"];
+            post_file_content = post_file_map["content"];
         }
         else if(headers["Content-Type"].find("application/x-www-form-urlencoded") != std::string::npos)
         {
@@ -282,15 +286,73 @@ void Part_C::method_GET()
     std::cout << std::endl << "-------------------> GET" << std::endl;
 }
 
+std::string Part_C::getMultiPartBoundary()
+{
+	if (headers.find("Content-Type") == headers.end())
+	{
+		status = 400; // Bad Request
+		throw Part_C::InvalidRequestException("Error Parse Multi Part Body 400");
+	}
+	std::string content_type = headers.find("Content-Type")->second;
+	std::size_t start = content_type.find("boundary=");
+	if (start == std::string::npos)
+	{
+		status = 400; // Bad Request
+		throw Part_C::InvalidRequestException("Error Parse Multi Part Body 400");
+	}
+	return ("--" + content_type.substr(start + 9));
+}
+
+std::unordered_map<std::string, std::string>  Part_C::parseMultiPartBody(const std::string &bodyLines)
+{
+    std::unordered_map<std::string, std::string> result;
+
+	std::string boundary = getMultiPartBoundary();
+
+	std::size_t start = bodyLines.find(boundary);
+	if (start == std::string::npos)
+	{
+		status = 400; // Bad Request
+		throw Part_C::InvalidRequestException("Error Parse Multi Part Body 400");
+	}
+	std::size_t end = bodyLines.find(boundary+"--", start + boundary.length());
+	if (end == std::string::npos)
+	{
+		status = 400; // Bad Request
+		throw Part_C::InvalidRequestException("Error Parse Multi Part Body 400");
+	}
+	std::string headers_and_body = bodyLines.substr(start + boundary.length(), end - start - boundary.length());
+	std::string headers = headers_and_body.substr(0, headers_and_body.find(std::string("\n") + std::string("\n")));
+	std::string body = headers_and_body.substr(headers_and_body.find(std::string("\n") + std::string("\n")) + 2);
+	std::size_t filename_start = headers.find("filename=");
+
+
+	if (filename_start == std::string::npos)
+	{
+		status = 400; // Bad Request
+		throw Part_C::InvalidRequestException("Error Parse Multi Part Body 400");
+	}
+	std::size_t filename_end = headers.find('"', filename_start + 10);
+
+    result["filename"] = headers.substr(filename_start + 10, filename_end - filename_start - 10);
+    result["content"] = body.substr(0, body.length() - 2);
+
+    //std::cout << "\n-----> TEST\n" << result["filename"] << "\n-\n" << result["content"] << std::endl;
+
+	return result;
+}
+
 std::unordered_map<std::string, std::string> parseUrlEncodedData(const std::string& data)
 {
     std::unordered_map<std::string, std::string> result;
     std::istringstream dataStream(data);
     std::string pair;
 
-    while (std::getline(dataStream, pair, '&')) {
+    while (std::getline(dataStream, pair, '&'))
+    {
         size_t equalPos = pair.find('=');
-        if (equalPos != std::string::npos) {
+        if (equalPos != std::string::npos)
+        {
             std::string key = pair.substr(0, equalPos);
             std::string value = pair.substr(equalPos + 1);
             result[key] = value; // Dans une version complète, vous devriez décoder les pourcentages ici.
@@ -331,34 +393,6 @@ void Part_C::method_POST()
 	status = 201; // Created
     contentType = "text/plain"; // Ajustez selon le type de réponse que vous voulez renvoyer
     content = "Resource created successfully."; // Personnalisez le message selon le résultat du traitement
-
-    /*// Ici, vous pouvez ajouter une logique pour traiter différents types de contenu
-    if (headers["Content-Type"] == "application/x-www-form-urlencoded")
-    {
-        auto postData = parseUrlEncodedData(body);
-
-        // Afficher les données postData
-        std::cout << std::endl << "---> Is application/x-www-form-urlencoded" << std::endl;
-        for (const auto& pair : postData) {
-            std::cout << "Clé: " << pair.first << ", Valeur: " << pair.second << std::endl;
-        }
-        
-        // Traitez les données de postData selon vos besoins spécifiques
-        // Par exemple, valider les données, les stocker dans une base de données, etc.
-    }
-    else if (headers["Content-Type"] == "application/json")
-    {
-        std::cout << std::endl << "---> Is application/json" << std::endl;
-        // Si vous attendez du JSON, vous devrez le parser ici
-        // Assurez-vous d'inclure une bibliothèque JSON pour cette tâche
-    }
-
-    // Après avoir traité les données, configurez la réponse
-    // Supposons que le traitement a été réussi et que vous souhaitez retourner un 200 OK
-    // ou un 201 Created si vous avez créé une ressource
-    status = 201; // Par exemple, pour "Created"
-    contentType = "text/plain"; // Ajustez selon le type de réponse que vous voulez renvoyer
-    content = "Resource created successfully."; // Personnalisez le message selon le résultat du traitement*/
 }
 
 void Part_C::method_DELETE()
