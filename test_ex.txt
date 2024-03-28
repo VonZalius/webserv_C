@@ -1,146 +1,16 @@
-Voici comment les exemples de requêtes pourraient être formatés avec les en-têtes HTTP complets pour divers codes de statut :
-200 OK
-
-http
-
-GET /index.html HTTP/1.1
+POST / HTTP/1.1
 Host: localhost:8080
+Content-Type: multipart/form-data; boundary=myboundary
+Content-Length: 151
 
-La page /index.html existe et est retournée avec succès.
-201 Created
+--myboundary
+Content-Disposition: form-data; name="fichier"; filename="exemple.txt"
+Content-Type: text/plain
 
-http
+Bonjour, ceci est un test.
+--myboundary--
 
-POST /users HTTP/1.1
+-----------------------------------------------------------------------------------------
+
+DELETE /post/exemple.txt HTTP/1.1
 Host: localhost:8080
-Content-Type: application/json
-
-{"username": "newuser", "email": "user@example.com"}
-
-Crée une nouvelle ressource utilisateur.
-202 Accepted
-
-http
-
-POST /async-process HTTP/1.1
-Host: localhost:8080
-
-Démarre un processus longue durée dont le résultat n'est pas immédiatement disponible.
-204 No Content
-
-http
-
-DELETE /users/123 HTTP/1.1
-Host: localhost:8080
-
-Supprime l'utilisateur 123, ne retourne aucun contenu.
-301 Moved Permanently
-
-http
-
-GET /old-page HTTP/1.1
-Host: localhost:8080
-
-La page /old-page a été déplacée définitivement.
-302 Found
-
-http
-
-GET /temporary-page HTTP/1.1
-Host: localhost:8080
-
-La page /temporary-page est temporairement redirigée.
-304 Not Modified
-
-http
-
-GET /cacheable-content HTTP/1.1
-Host: localhost:8080
-If-Modified-Since: Wed, 21 Oct 2020 07:28:00 GMT
-
-La ressource demandée n'a pas été modifiée depuis la date spécifiée.
-400 Bad Request
-
-http
-
-GET / HTTP/1.1
-
-Requête malformée ou incomplète.
-401 Unauthorized
-
-http
-
-GET /protected-resource HTTP/1.1
-Host: localhost:8080
-
-L'accès à /protected-resource nécessite une authentification.
-403 Forbidden
-
-http
-
-GET /admin-only HTTP/1.1
-Host: localhost:8080
-
-L'utilisateur n'a pas les permissions pour accéder à /admin-only.
-404 Not Found
-
-http
-
-GET /nonexistent-page HTTP/1.1
-Host: localhost:8080
-
-La page /nonexistent-page n'existe pas.
-405 Method Not Allowed
-
-http
-
-PUT /read-only-resource HTTP/1.1
-Host: localhost:8080
-
-La méthode PUT n'est pas autorisée sur /read-only-resource.
-409 Conflict
-
-http
-
-POST /users HTTP/1.1
-Host: localhost:8080
-Content-Type: application/json
-
-{"username": "existinguser", "email": "user@example.com"}
-
-Conflit lors de la création d'un utilisateur qui existe déjà.
-413 Payload Too Large
-
-http
-
-POST /upload HTTP/1.1
-Host: localhost:8080
-Content-Length: 10000000
-
-Le corps de la requête dépasse la taille maximale autorisée par le serveur.
-500 Internal Server Error
-
-http
-
-GET /buggy-endpoint HTTP/1.1
-Host: localhost:8080
-
-Le serveur rencontre une erreur en traitant la requête pour /buggy-endpoint.
-501 Not Implemented
-
-http
-
-FOOBAR / HTTP/1.1
-Host: localhost:8080
-
-La méthode HTTP FOOBAR n'est pas implémentée par le serveur.
-505 HTTP Version Not Supported
-
-http
-
-GET / HTTP/2.0
-Host: localhost:8080
-
-Le serveur ne supporte pas la version HTTP demandée (HTTP/2.0 dans cet exemple).
-
-Ces exemples montrent comment formater les requêtes HTTP pour différents scénarios conduisant à divers codes de statut. Notez que certains détails, comme les corps de requête pour les méthodes POST, sont simplifiés ou symboliques.
