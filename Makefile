@@ -2,7 +2,7 @@
 NAME     := server
 
 # Sources and objects.
-SRCS     := main.cpp Partie_C/PC_1.cpp Partie_C/Parse.cpp Partie_C/Method.cpp
+SRCS     := main.cpp Partie_C/PC_1.cpp Partie_C/Parse.cpp Partie_C/Method.cpp Partie_C/CGI.cpp
 OBJS     := $(SRCS:.cpp=.o)
 
 # Define all the compiling flags.

@@ -42,7 +42,9 @@ Part_C::Part_C(int client_socket, ServerConfig& config, int test_mode): test_mod
 
     //-------------------- Partie Execution --------------------
 
-        if(method == "GET")
+        if(isCGI())
+            execute_cgi();
+        else if(method == "GET")
             method_GET();
         else if(method == "POST")
             method_POST();
@@ -79,12 +81,22 @@ Part_C::Part_C(int client_socket, ServerConfig& config, int test_mode): test_mod
 
     final_status();
 
-    httpResponse = "HTTP/1.1 " + std::to_string(status) + " " + _statusCodes[status] + "\r\n" +
+    if (isCGI())
+        httpResponse = "HTTP/1.1 " + std::to_string(status) + " " + _statusCodes[status] + "\r\n" +
+           "Content-Length: " + std::to_string(cgi_content.length()) + "\r\n" +
+           "Content-Type: text/html; charset=UTF-8\r\n" +  // Assurez-vous d'inclure Content-Type si nécessaire
+           "\r\n" +
+           cgi_content;
+    else
+        httpResponse = "HTTP/1.1 " + std::to_string(status) + " " + _statusCodes[status] + "\r\n" +
                "Content-Type: " + contentType + "\r\n" +
                "Content-Length: " + std::to_string(content.length()) + "\r\n" +
                //"Connection: close\r\n" +
                "\r\n" +
                content;
+
+    
+    //httpResponse = "HTTP/1.1 200 OK\nContent-Type: text/html\n\n<html><head><title>Date et Heure</title></head><body>\n<h1>Date et Heure Actuelles</h1>\n<p>Mon Jul 12 12:34:56 2021</p>\n</body></html>\n";
 
     std::cout << std::endl << std::endl << "-------------------> Response" << std::endl << httpResponse << std::endl;
 

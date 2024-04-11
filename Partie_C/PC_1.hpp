@@ -22,6 +22,8 @@ public:
     std::string post_file_name;
     std::string post_file_content;
 
+    std::string cgi_content;
+
     //std::string delete_file_name;
 
     int status;
@@ -40,6 +42,9 @@ public:
     void method_POST();
     void method_DELETE();
     void getContentType(const std::string& filePath);
+
+    bool isCGI();
+    void execute_cgi();
 
     class InvalidRequestException : public std::exception
 	{
