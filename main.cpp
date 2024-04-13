@@ -16,7 +16,7 @@
 }*/
 
 // Fonction pour initialiser et lancer le serveur
-void startServer(ServerConfig& config, int test_mode)
+void startServer(s_server& config, int test_mode)
 {
     int server_fd, new_socket;
     struct sockaddr_in address;
@@ -77,7 +77,28 @@ int main(int argc, char **argv)
         std::cout << "enter test mode value\n";
         return 0;
     }
-    ServerConfig config; // Utiliserait normalement les données provenant de la Partie A
+    s_server config; // Utiliserait normalement les données provenant de la Partie A
+
+    //init test
+    config.server_name = "webserv";
+    config.port = 8080;
+    config.client_max_body_size = 9999;
+
+    config.error_pages[404] = "webpage/error_pages/error404.html";
+    config.error_pages[405] = "webpage/error_pages/error405.html";
+
+    std::map<std::string, std::string> details1;
+    details1["index"] = "index.html";
+    details1["methods"] = "GET POST";
+    details1["root"] = "/index.html";
+    config.routes["/"] = details1;
+
+    std::map<std::string, std::string> details2;
+    details2["methods"] = "GET";
+    details2["redirection"] = "https://signin.intra.42.fr";
+    config.routes["intra42"] = details2;
+
+
     startServer(config, atoi(argv[1]));
     return 0;
 }

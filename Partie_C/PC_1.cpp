@@ -1,7 +1,7 @@
 #include "PC_1.hpp"
 
 // Fonction pour traiter une requête HTTP reçue et renvoyer une réponse
-Part_C::Part_C(int client_socket, ServerConfig& config, int test_mode): test_mode(test_mode)
+Part_C::Part_C(int client_socket, s_server& config, int test_mode): test_mode(test_mode)
 {
 
     init();
@@ -61,7 +61,7 @@ Part_C::Part_C(int client_socket, ServerConfig& config, int test_mode): test_mod
     //-------------------- Partie Response --------------------
 
      // Utilisez basePath de la configuration pour trouver les fichiers
-    std::string requestURI = uri == "/" ? config.index : uri;
+    std::string requestURI = uri == "/" ? config.routes["/"]["root"] : uri;
     std::string filePath = config.basePath + requestURI;
     std::ifstream fileStream(filePath);
     std::string httpResponse;

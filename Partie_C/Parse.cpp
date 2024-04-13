@@ -24,7 +24,7 @@ bool isPathLengthValid(const std::string &path, size_t maxLength)
 
 //----------------------------------------------------------------------------------------------------------
 
-void Part_C::parse(const std::string& requestText, ServerConfig& config)
+void Part_C::parse(const std::string& requestText, s_server& config)
 {
     std::istringstream requestStream(requestText);
     std::string line;
@@ -96,7 +96,7 @@ void Part_C::parse(const std::string& requestText, ServerConfig& config)
 
     // Le reste est le corps de la requête
     std::string potential_body = std::string(std::istreambuf_iterator<char>(requestStream), {});
-    if (potential_body.size() > config.max_body_size)
+    if (potential_body.size() > config.client_max_body_size)
     {
         status = 413;
         throw Part_C::InvalidRequestException("Error Body 413");

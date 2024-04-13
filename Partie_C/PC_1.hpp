@@ -3,7 +3,7 @@
 
 #include "../webserv.hpp"
 
-struct ServerConfig;
+struct s_server;
 
 class Part_C
 {
@@ -29,11 +29,11 @@ public:
     int status;
     std::map<int, std::string> _statusCodes;
 
-    Part_C(int client_socket, ServerConfig& config, int test_mode);
+    Part_C(int client_socket, s_server& config, int test_mode);
 
     void final_status();
     void init();
-    void parse(const std::string& requestText, ServerConfig& config);
+    void parse(const std::string& requestText, s_server& config);
     std::string getMultiPartBoundary();
     std::unordered_map<std::string, std::string>  parseMultiPartBody(const std::string &bodyLines);
     std::map<std::string, std::string> parseUrlEncoded(const std::string& data);
