@@ -31,7 +31,7 @@ public:
 
     Part_C(int client_socket, s_server& config, int test_mode);
 
-    void final_status();
+    void final_status(s_server& config);
     void init();
     void parse(const std::string& requestText, s_server& config);
     std::string getMultiPartBoundary();

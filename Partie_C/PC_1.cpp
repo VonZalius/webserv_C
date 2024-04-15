@@ -70,7 +70,9 @@ Part_C::Part_C(int client_socket, s_server& config, int test_mode): test_mode(te
     if (method == "GET")
     {
         if (!fileStream.is_open())
+        {
             status = 404;
+        }
 
         getContentType(filePath);
 
@@ -79,7 +81,7 @@ Part_C::Part_C(int client_socket, s_server& config, int test_mode): test_mode(te
         content = response_buffer.str();
     }
 
-    final_status();
+    final_status(config);
 
     if (isCGI())
         httpResponse = "HTTP/1.1 " + std::to_string(status) + " " + _statusCodes[status] + "\r\n" +
@@ -105,12 +107,26 @@ Part_C::Part_C(int client_socket, s_server& config, int test_mode): test_mode(te
 
 }
 
-void Part_C::final_status()
+void Part_C::final_status(s_server& config)
 {
     if (status != 200 && status != 201)
     {
-        contentType = "text/plain";
-        content = std::to_string(status) + " : " + _statusCodes[status];
+        if (status == 404 || status == 405)
+        {
+            std::string filePath = "./" + config.error_pages[status];
+            std::ifstream fileStream(filePath);
+
+            getContentType(filePath);
+
+            std::stringstream response_buffer;
+            response_buffer << fileStream.rdbuf();
+            content = response_buffer.str();
+        }
+        else
+        {
+            contentType = "text/plain";
+            content = std::to_string(status) + " : " + _statusCodes[status];
+        }
     }
 }
 
