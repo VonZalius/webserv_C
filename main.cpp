@@ -90,7 +90,7 @@ int main(int argc, char **argv)
     std::map<std::string, std::string> details1;
     details1["index"] = "index.html";
     details1["methods"] = "GET POST";
-    details1["root"] = "/index.html";
+    details1["root"] = "./webpage/sitetest/index.html";
     config.routes["/"] = details1;
 
     std::map<std::string, std::string> details2;

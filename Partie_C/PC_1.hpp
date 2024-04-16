@@ -11,6 +11,8 @@ public:
 
     bool test_mode = false;
 
+    std::string basePath;
+
     std::string method;
     std::string uri;
     std::string httpVersion;

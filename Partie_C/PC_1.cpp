@@ -7,6 +7,9 @@ Part_C::Part_C(int client_socket, s_server& config, int test_mode): test_mode(te
     init();
     status = 200;
 
+    size_t lastSlashPos = config.routes["/"]["root"].find_last_of("/");
+    basePath = config.routes["/"]["root"].substr(0, lastSlashPos);
+
     //-------------------- Partie Request --------------------
 
     const int bufferSize = 1024;
@@ -61,11 +64,12 @@ Part_C::Part_C(int client_socket, s_server& config, int test_mode): test_mode(te
     //-------------------- Partie Response --------------------
 
      // Utilisez basePath de la configuration pour trouver les fichiers
-    std::string requestURI = uri == "/" ? config.routes["/"]["root"] : uri;
-    std::string filePath = config.basePath + requestURI;
+    std::string requestURI = uri == "/" ? config.routes["/"]["root"] : basePath + uri;
+    std::string filePath = requestURI;
     std::ifstream fileStream(filePath);
     std::string httpResponse;
 
+    std::cout << requestURI << std::endl;
 
     if (method == "GET")
     {

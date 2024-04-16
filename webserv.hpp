@@ -41,8 +41,6 @@ typedef struct s_server
 	size_t														client_max_body_size;
 	std::map<int, std::string> 									error_pages;
 	std::map<std::string, std::map<std::string, std::string> >	routes;
-
-    std::string basePath = "./webpage/sitetest";
 }	t_server;
 
 void main_C(int client_socket, s_server& config);
